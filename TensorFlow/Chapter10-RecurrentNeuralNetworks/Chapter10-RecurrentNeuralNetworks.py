@@ -34,14 +34,16 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 # Model parameters
-numberOfHiddenNeurons = 10
+numberOfHiddenNeurons = 100
+seq_size = 5
+eegData = True
 
 ############################################
 # Helper functions to load/split data, and plot final results
 ############################################
 
 # Load data (for EEG data)
-def load_series(filename, length=100, electrode=10):
+def load_eeg(filename, length=100, electrode=10):
     try:
         with open(filename) as csvfile:
             data = [] # Initialise variable to store data
@@ -58,22 +60,22 @@ def load_series(filename, length=100, electrode=10):
     except IOError:
         return None
 
-# # Load data (for book data)
-# def load_series(filename, series_idx=1):
-#     try:
-#         with open(filename) as csvfile:
-#             # Load data
-#             csvreader = csv.reader(csvfile)
-#             # Loop through the lines of the file and convert to a floating point number
-#             data = [float(row[series_idx]) for row in csvreader if len(row) > 0]
-#             # Pre-process the data by mean-centering and dividing by standard deviation
-#             normalized_data = (data - np.mean(data)) / np.std(data)
-#         return normalized_data
-#     except IOError:
-#         return None
+# Load data (for book data)
+def load_series(filename, series_idx=1):
+    try:
+        with open(filename) as csvfile:
+            # Load data
+            csvreader = csv.reader(csvfile)
+            # Loop through the lines of the file and convert to a floating point number
+            data = [float(row[series_idx]) for row in csvreader if len(row) > 0]
+            # Pre-process the data by mean-centering and dividing by standard deviation
+            normalized_data = (data - np.mean(data)) / np.std(data)
+        return normalized_data
+    except IOError:
+        return None
 
 # Split data
-def split_data(data, percent_train=0.60):
+def split_data(data, percent_train=0.80):
     num_rows = len(data)
     train_data, test_data = [], []
     # Loop over data
@@ -90,7 +92,7 @@ def plot_results(train_x, predictions, actual, filename):
     num_train = len(train_x)
     plt.plot(list(range(num_train)), train_x, color='b', label='training data')
     plt.plot(list(range(num_train, num_train + len(predictions))), predictions, color='r', label='predicted')
-    #plt.plot(list(range(num_train, num_train + len(actual))), actual, color='g', label='test data')
+    plt.plot(list(range(num_train, num_train + len(actual))), actual, color='g', label='test data')
     plt.legend()
     if filename is not None:
         plt.savefig(filename)
@@ -178,9 +180,6 @@ class SeriesPredictor:
 
 if __name__ == '__main__':
 
-    # Common parameters
-    seq_size = 5
-
     # Create SeriesPredictor instance
     predictor = SeriesPredictor(
         input_dim = 1, # The dimension of each element of the sequence is a scalar (1-dimensional)
@@ -188,8 +187,10 @@ if __name__ == '__main__':
         hidden_dim = numberOfHiddenNeurons) # Size of the RNN hidden dimension
     
     # Load the data and split into training and test data
-    # data = load_series('international-airline-passengers.csv')
-    data = load_series('eegData.csv')
+    if eegData:
+        data = load_eeg('eegData.csv')
+    else:
+        data = load_series('international-airline-passengers.csv')
     train_data, test_data = split_data(data)
 
     # # Function to create a list of sequences (length = seq_size)
@@ -233,8 +234,3 @@ if __name__ == '__main__':
             prev_seq = np.vstack((prev_seq[1:], next_seq[-1]))
         # plot_results(train_data, predicted_vals, test_data, 'hallucinations.png')
         plot_results(train_data, predicted_vals, test_data, None)
-
-
-# # Get random EEG index
-# lengthEEG = len(list(csvreader))-dataLength
-# randomIndex = int(np.floor(np.random.rand(1)*lengthEEG))
