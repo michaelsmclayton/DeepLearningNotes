@@ -34,26 +34,43 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 
 # Model parameters
-numberOfHiddenNeurons = 100
-
+numberOfHiddenNeurons = 10
 
 ############################################
 # Helper functions to load/split data, and plot final results
 ############################################
 
-# Load data
-def load_series(filename, series_idx=1):
+# Load data (for EEG data)
+def load_series(filename, length=100, electrode=10):
     try:
         with open(filename) as csvfile:
-            # Load data
+            data = [] # Initialise variable to store data
             csvreader = csv.reader(csvfile)
-            # Loop through the lines of the file and convert to a floating point number
-            data = [float(row[series_idx]) for row in csvreader if len(row) > 0]
-            # Pre-process the data by mean-centering and dividing by standard deviation
+            # Get random EEG index
+            lengthEEG = 1301-length
+            randomIndex = int(np.floor(np.random.rand(1)*lengthEEG))
+            for idx, row in enumerate(csvreader):
+                if idx>0:
+                    if idx>randomIndex & idx<randomIndex+length:
+                        data.append(float(row[electrode]))
             normalized_data = (data - np.mean(data)) / np.std(data)
-        return normalized_data
+            return normalized_data
     except IOError:
         return None
+
+# # Load data (for book data)
+# def load_series(filename, series_idx=1):
+#     try:
+#         with open(filename) as csvfile:
+#             # Load data
+#             csvreader = csv.reader(csvfile)
+#             # Loop through the lines of the file and convert to a floating point number
+#             data = [float(row[series_idx]) for row in csvreader if len(row) > 0]
+#             # Pre-process the data by mean-centering and dividing by standard deviation
+#             normalized_data = (data - np.mean(data)) / np.std(data)
+#         return normalized_data
+#     except IOError:
+#         return None
 
 # Split data
 def split_data(data, percent_train=0.60):
@@ -73,7 +90,7 @@ def plot_results(train_x, predictions, actual, filename):
     num_train = len(train_x)
     plt.plot(list(range(num_train)), train_x, color='b', label='training data')
     plt.plot(list(range(num_train, num_train + len(predictions))), predictions, color='r', label='predicted')
-    plt.plot(list(range(num_train, num_train + len(actual))), actual, color='g', label='test data')
+    #plt.plot(list(range(num_train, num_train + len(actual))), actual, color='g', label='test data')
     plt.legend()
     if filename is not None:
         plt.savefig(filename)
@@ -171,7 +188,8 @@ if __name__ == '__main__':
         hidden_dim = numberOfHiddenNeurons) # Size of the RNN hidden dimension
     
     # Load the data and split into training and test data
-    data = load_series('international-airline-passengers.csv')
+    # data = load_series('international-airline-passengers.csv')
+    data = load_series('eegData.csv')
     train_data, test_data = split_data(data)
 
     # # Function to create a list of sequences (length = seq_size)
@@ -206,11 +224,17 @@ if __name__ == '__main__':
         # plot_results(train_data, predicted_vals, test_data, 'predictions.png')
         plot_results(train_data, predicted_vals, test_data, None)
 
-        # # Get and plot the predicted values (from just the last sequence)
-        # predicted_vals = []
-        # prev_seq = train_x[-1] # Get just the last test sequence (length=5)
-        # for i in range(20):
-        #     next_seq = predictor.test(sess, [prev_seq])
-        #     predicted_vals.append(next_seq[-1])
-        #     prev_seq = np.vstack((prev_seq[1:], next_seq[-1]))
+        # Get and plot the predicted values (from just the last sequence)
+        predicted_vals = []
+        prev_seq = train_x[-1] # Get just the last test sequence (length=5)
+        for i in range(20):
+            next_seq = predictor.test(sess, [prev_seq])
+            predicted_vals.append(next_seq[-1])
+            prev_seq = np.vstack((prev_seq[1:], next_seq[-1]))
         # plot_results(train_data, predicted_vals, test_data, 'hallucinations.png')
+        plot_results(train_data, predicted_vals, test_data, None)
+
+
+# # Get random EEG index
+# lengthEEG = len(list(csvreader))-dataLength
+# randomIndex = int(np.floor(np.random.rand(1)*lengthEEG))
