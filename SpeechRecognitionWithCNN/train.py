@@ -59,12 +59,6 @@ To pull this all together, you'd run:
 bazel run tensorflow/examples/speech_commands:train -- \
 --data_dir=my_wavs --wanted_words=up,down
 
-"""
-############################
-# My notes
-############################
-"""
-
     If your training script gets interrupted, you can look for the last saved checkpoint
 and then restart the script with --start_checkpoint=/tmp/speech_commands_train/conv.ckpt-100
 as a command line argument to start from that point.
