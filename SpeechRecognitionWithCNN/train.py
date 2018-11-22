@@ -80,6 +80,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 import argparse
 import os.path
 import sys
+os.environ['JOBLIB_TEMP_FOLDER'] = "/tmp"
 
 import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
