@@ -362,7 +362,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--data_dir',
         type=str,
-        default='/tmp/speech_dataset/',
+        default='./speech_dataset/',
         help="""\
         Where to download the speech training data to.
         """)
